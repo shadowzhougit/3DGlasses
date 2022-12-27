@@ -1,0 +1,6 @@
+<RCC>
+    <qresource prefix="/">
+        <file>res/DigiVideo.qml</file>
+        <file>res/main.qml</file>
+    </qresource>
+</RCC>
