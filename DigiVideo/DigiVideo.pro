@@ -1,13 +1,14 @@
 TEMPLATE = app
 TARGET = DigiV
-QT += qml quick
+QT += qml quick network
 
 CONFIG += c++11
 
 SOURCES += src/main.cpp \
-    src/DigiVideo.cpp \
-    src/DigiVideoThread.cpp \
-    src/ScriptExecutor.cc
+    src/DigiVideo.cc \
+    src/DigiVideoThread.cc \
+    src/ScriptExecutor.cc \
+    src/UDPBroadcast.cc
 
 RESOURCES += qml.qrc
 
@@ -24,7 +25,8 @@ include(deployment.pri)
 HEADERS += \
     src/DigiVideo.h \
     src/DigiVideoThread.h \
-    src/ScriptExecutor.h
+    src/ScriptExecutor.h \
+    src/UDPBroadcast.h
 
 win32{
 CONFIG(debug, debug|release) {

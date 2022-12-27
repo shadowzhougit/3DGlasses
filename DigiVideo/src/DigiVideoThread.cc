@@ -19,7 +19,7 @@ void DigiVideoThread::init() {
 }
 
 void DigiVideoThread::unInit() {
-    qDebug()<<"ffmpeg uninit";
+    qDebug()<<"ffmpeg uninit\n";
     av_free(mOutBuf);
     av_free(mFrameRGB);
     av_free(mFrame);
@@ -31,14 +31,14 @@ void DigiVideoThread::unInit() {
 void DigiVideoThread::run() {
     mInFmtCtx = avformat_alloc_context();
     if(avformat_open_input(&mInFmtCtx, mPath.c_str(), NULL, NULL)) {
-        qDebug()<<"get rtsp failed";
+        qDebug()<<"get rtsp failed\n";
         return;
     } else {
-        qDebug()<<"get rtsp success";
+        qDebug()<<"get rtsp success\n";
     }
 
     if(avformat_find_stream_info(mInFmtCtx, NULL) < 0) {
-        qDebug()<<"could not find stream information";
+        qDebug()<<"could not find stream information\n";
         return;
     }
 
@@ -51,16 +51,15 @@ void DigiVideoThread::run() {
     }
 
     if(nVideoIndex == -1) {
-        qDebug()<<"could not find video stream";
+        qDebug()<<"could not find video stream\n";
         return;
     }
-    //Output Info---输出一些信息
-    qDebug("---------------- File Information ---------------");
+    qDebug()<<"---------------- File Information ---------------\n";
     //av_dump_format(m_pInFmtCtx, 0, m_strPath.c_str(), 0);
     mCodecCtx = mInFmtCtx->streams[nVideoIndex]->codec;
     mCodec = avcodec_find_decoder(mCodecCtx->codec_id);
     if(!mCodec) {
-        qDebug()<<"could not find codec";
+        qDebug()<<"could not find codec\n";
         return;
     }
 
@@ -79,7 +78,7 @@ void DigiVideoThread::run() {
     int nSize = mCodecCtx->width * mCodecCtx->height;
     mPacket = (AVPacket *)av_malloc(sizeof(AVPacket));
     if(av_new_packet(mPacket, nSize) != 0) {
-        qDebug()<<"new packet failed";
+        qDebug()<<"new packet failed\n";
     }
 
     while (!isInterruptionRequested()) {
@@ -87,7 +86,7 @@ void DigiVideoThread::run() {
             if(mPacket->stream_index == nVideoIndex) {
                 int nGotPic = 0;
                 if(avcodec_decode_video2(mCodecCtx, mFrame, &nGotPic, mPacket) < 0) {
-                    qDebug()<<"decode failed";
+                    qDebug()<<"decode failed\n";
                     return;
                 }
                 if(nGotPic) {

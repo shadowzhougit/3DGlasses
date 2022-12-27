@@ -9,14 +9,14 @@ void DigiVideo::setSize(int width, int height){
 }
 
 DigiVideo::DigiVideo(): mHeight(205), mWidth(360){
-    qDebug()<<"create";
+    qDebug()<<"create\n";
     mVedioThread = new DigiVideoThread();
     connect(mVedioThread, &DigiVideoThread::sendOneFrame, this, &DigiVideo::getOneFrame);
     mVedioThread->start();
 }
 
 DigiVideo::~DigiVideo() {
-    qDebug()<<"distory";
+    qDebug()<<"distory\n";
     mVedioThread->deleteLater();
 }
 
