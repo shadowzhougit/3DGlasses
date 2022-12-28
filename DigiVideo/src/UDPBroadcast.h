@@ -23,7 +23,7 @@ private:
 signals:
 
 public slots:
-    void udpConnected();
+    void startUDP();
     void sendMessage();
     void handleTimeout();
 };

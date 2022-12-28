@@ -1,7 +1,8 @@
 #include <QGuiApplication>
 #include <QQmlApplicationEngine>
 #include <QQmlContext>
-#include "cudpsocket.h"
+#include "CUdpSocket.h"
+#include "CTcpSocket.h"
 int main(int argc, char *argv[])
 {
     QCoreApplication::setAttribute(Qt::AA_EnableHighDpiScaling);
@@ -9,6 +10,7 @@ int main(int argc, char *argv[])
     QGuiApplication app(argc, argv);
     QQmlApplicationEngine engine;
     engine.rootContext()->setContextProperty(QStringLiteral("udpSocket"), new CUdpSocket());
+    engine.rootContext()->setContextProperty(QStringLiteral("tcpSocket"), new CTcpSocket());
 
     const QUrl url(QStringLiteral("qrc:/main.qml"));
     QObject::connect(&engine, &QQmlApplicationEngine::objectCreated,

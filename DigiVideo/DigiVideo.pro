@@ -5,8 +5,10 @@ QT += qml quick network
 CONFIG += c++11
 
 SOURCES += src/main.cpp \
+    src/CTcpServer.cc \
     src/DigiVideo.cc \
     src/DigiVideoThread.cc \
+    src/Engine.cpp \
     src/ScriptExecutor.cc \
     src/UDPBroadcast.cc
 
@@ -23,8 +25,10 @@ else: unix:!android: target.path = /opt/$${TARGET}/bin
 include(deployment.pri)
 
 HEADERS += \
+    src/CTcpServer.h \
     src/DigiVideo.h \
     src/DigiVideoThread.h \
+    src/Engine.h \
     src/ScriptExecutor.h \
     src/UDPBroadcast.h
 
