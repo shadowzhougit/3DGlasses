@@ -14,17 +14,35 @@ Window {
             text: qsTr("text")
         }
 
-        RoundButton {
+        Button {
             id: btnConnect
+            text: "connect"
             onClicked: {
                 tcpSocket.connectToServer(udpSocket.getServerIP())
             }
         }
 
-        RoundButton {
-            id: btnSend
+        Button {
+            id: btnSwitch
+            text: "Switch"
             onClicked: {
-                tcpSocket.sendData(udpSocket.getServerIP())
+                tcpSocket.sendData("0, switch, 0\n")
+            }
+        }
+
+        Button {
+            id: btnPush
+            text: "Push"
+            onClicked: {
+                tcpSocket.sendData("1, push, 'just a test push message'\n")
+            }
+        }
+
+        Button {
+            id: btnPull
+            text: "Pull"
+            onClicked: {
+                tcpSocket.sendData("2, pull, 'just a test pull message'\n")
             }
         }
     }
@@ -32,8 +50,8 @@ Window {
         target: udpSocket
         function onRecvDataSignal(data) {
             console.log("rece:" + data)
-            receivedLbl.text += data
-            receivedLbl.text += udpSocket.getServerIP()
+            var currentDate = new Date()
+            receivedLbl.text = data + udpSocket.getServerIP() + currentDate.toLocaleString(Qt.locale("de_DE"), "yyyy-MM-dd HH:mm:ss")
         }
     }
 }

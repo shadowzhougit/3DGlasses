@@ -30,6 +30,7 @@ HEADERS += \
     src/DigiVideoThread.h \
     src/Engine.h \
     src/ScriptExecutor.h \
+    src/Types.h \
     src/UDPBroadcast.h
 
 win32{

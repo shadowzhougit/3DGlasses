@@ -30,6 +30,7 @@ ApplicationWindow {
         color: "lightblue"
         Text{
             id:btn_text
+            visible: true
             anchors.centerIn: parent
             text: isPlaying ? qsTr("停止播放") : qsTr("开始播放")
         }
@@ -37,12 +38,7 @@ ApplicationWindow {
         MouseArea{
             anchors.fill: parent
             onClicked: {
-                if (isPlaying) {
-                    stackView.pop()
-                } else {
-                    stackView.push("qrc:/res/DigiVideo.qml")
-                }
-                isPlaying = !isPlaying
+               playVideo()
             }
         }
     }
@@ -54,4 +50,19 @@ ApplicationWindow {
         }
     }
 
+    function playVideo() {
+        if (isPlaying) {
+            stackView.pop()
+        } else {
+            stackView.push("qrc:/res/DigiVideo.qml")
+        }
+        isPlaying = !isPlaying
+    }
+
+    Connections {
+        target: engine
+        function onStartPlay() {
+            playVideo()
+        }
+    }
 }

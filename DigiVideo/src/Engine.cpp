@@ -1,6 +1,10 @@
 #include "Engine.h"
-
-Engine::Engine(QObject *parent) : QObject{parent} {
+#include "Types.h"
+Engine::Engine(QObject *parent) : QObject{parent},
+    mUDPbroadcast(nullptr),
+    mExecutor(nullptr),
+    mTcpServer(nullptr),
+    mDeviceType(DigiVType::DeviceType::None) {
     initObjects();
 }
 
@@ -28,8 +32,10 @@ void Engine::initObjects() {
     qDebug() << "init script executor success!\n";
     mTcpServer = new CTcpServer();
     qDebug() << "init tcp server success!\n";
-    connect(mTcpServer, &CTcpServer::recvDataSignal, this, &Engine::tcpAppendData);
+    //processExecute();
+    connect(this, &Engine::pushVideoSingal, this, &Engine::executeVideoSlot);
     connect(mTcpServer, &CTcpServer::connected, this, &Engine::tcpConnected);
+    connect(mTcpServer, &CTcpServer::recvDataSignal, this, &Engine::tcpAppendData);
 }
 
 void Engine::processExecute() {
@@ -51,6 +57,51 @@ void Engine::tcpConnected() {
     mUDPbroadcast->stopUDP();
 }
 
-void Engine::tcpAppendData(const QString& data) {
-    qDebug() << "tcp socket received client:" << data << "\n";
+void Engine::tcpAppendData(const QString& cmd) {
+    if (cmd.isNull() || cmd.isEmpty()) {
+        qDebug() << "none received tcp cmd.\n";
+        return;
+    }
+    qDebug() << "tcp socket received client:" << cmd << "\n";
+    parserCmd(cmd);
 }
+
+void Engine::parserCmd(const QString& cmdSrc) {
+    if (!cmdSrc.contains("\n")) {
+        qDebug() << "received invalid cmd.\n";
+        return;
+    }
+    QString executableSrc = cmdSrc.trimmed();
+    executableSrc = executableSrc.replace("\n", "");
+    QStringList Cmds = executableSrc.split(",");
+    if (Cmds.count() != 3) {
+        qDebug() << "cmd invalid count!=2.\n";
+        return;
+    }
+    DigiVType::CMDType cmd =static_cast<DigiVType::CMDType>(Cmds.at(0).toInt());
+    QString command = Cmds.at(1);
+    QString param = Cmds.at(2);
+    qDebug() << cmd << command << param;
+    switch (cmd) {
+    case DigiVType::CMDType::NoneCmd:
+        qDebug() << "NoneCmd";
+        break;
+    case DigiVType::CMDType::SwitchCmd:
+        mDeviceType = static_cast<DigiVType::DeviceType>(param.toInt());
+        qDebug() << "SwitchCmd";
+        break;
+    case DigiVType::CMDType::PushCmd:
+        qDebug() << "PushCmd";
+        emit pushVideoSingal();
+        break;
+    case DigiVType::CMDType::PullCmd:
+        qDebug() << "PullCmd";
+        emit startPlay();
+        break;
+    }
+}
+
+void Engine::executeVideoSlot() {
+    processExecute();
+}
+
