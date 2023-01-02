@@ -1,5 +1,6 @@
-import 'package:flutter/material.dart';
 import 'dart:io';
+
+import 'package:flutter/material.dart';
 
 class Device {
   const Device({required this.name});
@@ -45,11 +46,10 @@ class ScanningListItem extends StatelessWidget {
     return ListTile(
       onTap: () {
         onCategoryChanged(device, inCart);
-        var dcount = device_list.length;
-        device_list.add(Device(name: "3D Glasses:$dcount"));
         Navigator.push(
           context,
-          MaterialPageRoute(builder: (context) => const SecondRoute()),
+          MaterialPageRoute(
+              builder: (context) => SecondRoute(device.name, 'splite')),
         );
       },
       leading: CircleAvatar(
@@ -65,9 +65,7 @@ class ScanningListItem extends StatelessWidget {
 }
 
 class ScanningList extends StatefulWidget {
-  const ScanningList({required this.devicesList, super.key});
-
-  final List<Device> devicesList;
+  const ScanningList({super.key});
 
   // The framework calls createState the first time
   // a widget appears at a given location in the tree.
@@ -81,6 +79,34 @@ class ScanningList extends StatefulWidget {
 
 class _ScanningListState extends State<ScanningList> {
   final _scanningCategory = <Device>{};
+
+  @override
+  void initState() {
+    RawDatagramSocket.bind(InternetAddress.anyIPv4, 6677)
+        .then((RawDatagramSocket socket) {
+      print('Datagram socket ready to receive');
+      print('${socket.address.address}:${socket.port}');
+      socket.listen((RawSocketEvent e) {
+        Datagram? d = socket.receive();
+        if (d == null) return;
+        String message = new String.fromCharCodes(d.data).trim();
+        print('Datagram from ${d.address.address}:${d.port}: ${message}');
+        setState(() {
+          Device device = Device(name: '$message');
+          bool isExist = false;
+          for (Device d in _scanningCategory) {
+            if (d.name == device.name) {
+              isExist = true;
+              break;
+            }
+          }
+          if (!isExist) {
+            _scanningCategory.add(device);
+          }
+        });
+      });
+    });
+  }
 
   void _handleCartChanged(Device device, bool inCart) {
     setState(() {
@@ -106,7 +132,7 @@ class _ScanningListState extends State<ScanningList> {
       ),
       body: ListView(
         padding: const EdgeInsets.symmetric(vertical: 8.0),
-        children: widget.devicesList.map((device) {
+        children: _scanningCategory.map((device) {
           return ScanningListItem(
             device: device,
             inCart: _scanningCategory.contains(device),
@@ -119,7 +145,9 @@ class _ScanningListState extends State<ScanningList> {
 }
 
 class SecondRoute extends StatelessWidget {
-  const SecondRoute({super.key});
+  final String title;
+  final String serialNumber;
+  const SecondRoute(this.title, this.serialNumber);
 
   @override
   Widget build(BuildContext context) {
@@ -135,7 +163,7 @@ class SecondRoute extends StatelessWidget {
             );
           },
         ),
-        title: const Text('3D Glasses1'),
+        title: Text('${title}'),
       ),
       body: Center(
         child: ElevatedButton(
@@ -150,22 +178,8 @@ class SecondRoute extends StatelessWidget {
 }
 
 void main() {
-  RawDatagramSocket.bind(InternetAddress.anyIPv4, 6677)
-      .then((RawDatagramSocket socket) {
-    print('Datagram socket ready to receive');
-    print('${socket.address.address}:${socket.port}');
-    socket.listen((RawSocketEvent e) {
-      Datagram? d = socket.receive();
-      if (d == null) return;
-      String message = new String.fromCharCodes(d.data).trim();
-      print('Datagram from ${d.address.address}:${d.port}: ${message}');
-      device_list.add(Device(name: '$message'));
-    });
-  });
   runApp(MaterialApp(
     title: '设备列表',
-    home: ScanningList(
-      devicesList: device_list,
-    ),
+    home: ScanningList(),
   ));
 }
