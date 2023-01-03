@@ -1,10 +1,9 @@
 import 'dart:io';
-
 import 'package:flutter/material.dart';
+import 'package:mocontrol/TcpController.dart';
 
 class Device {
   const Device({required this.name});
-
   final String name;
 }
 
@@ -49,7 +48,7 @@ class ScanningListItem extends StatelessWidget {
         Navigator.push(
           context,
           MaterialPageRoute(
-              builder: (context) => SecondRoute(device.name, 'splite')),
+              builder: (context) => TcpSocketRoute(device.name, 'Second page')),
         );
       },
       leading: CircleAvatar(
@@ -144,42 +143,10 @@ class _ScanningListState extends State<ScanningList> {
   }
 }
 
-class SecondRoute extends StatelessWidget {
-  final String title;
-  final String serialNumber;
-  const SecondRoute(this.title, this.serialNumber);
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        leading: Builder(
-          builder: (context) {
-            return IconButton(
-              icon: Icon(Icons.keyboard_return, color: Colors.white),
-              onPressed: () {
-                Navigator.pop(context);
-              },
-            );
-          },
-        ),
-        title: Text('${title}'),
-      ),
-      body: Center(
-        child: ElevatedButton(
-          onPressed: () {
-            Navigator.pop(context);
-          },
-          child: const Text('Go back!'),
-        ),
-      ),
-    );
-  }
-}
-
 void main() {
+  // ignore: prefer_const_constructors
   runApp(MaterialApp(
     title: '设备列表',
-    home: ScanningList(),
+    home: const ScanningList(),
   ));
 }
