@@ -1,11 +1,10 @@
 ﻿import QtQuick 2.5
-import QtQuick.Controls 1.4
-
+import QtQuick.Controls 2.5
 
 ApplicationWindow {
     id: main
-    width: 360
-    height: 640
+    width: 1024
+    height: 768
     visible: true
 
     property real multiplierH: (main.height/640)*1000
@@ -44,7 +43,7 @@ ApplicationWindow {
     }
 
     StackView {
-        anchors.centerIn: parent
+        anchors.fill: parent
         id:stackView
         initialItem: Rectangle {
         }

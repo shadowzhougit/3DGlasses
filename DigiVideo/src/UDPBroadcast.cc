@@ -1,8 +1,9 @@
 #include "UDPBroadcast.h"
 #include <QIODevice>
+
 UDPBroadcast::UDPBroadcast(QObject *parent) : QObject(parent) {
     mUDPSocket = new QUdpSocket();
-    QHostAddress hostAddress(getLocalIP());
+    QHostAddress hostAddress(getLocalHostIP().toString());
     mUDPSocket->bind(hostAddress, UDP_OPEN_PORT);
 
     mTimer = new QTimer(this);
@@ -31,12 +32,12 @@ void UDPBroadcast::startUDP() {
 
 void UDPBroadcast::sendMessage() {
     //broadcast
-    QString protocolStr = "digiv:serial number;ip:" + getLocalIP() + "\n";
+    QString protocolStr = "digiv:serial number;ip:" + getLocalHostIP().toString() + "\n";
     qint64 len = mUDPSocket->writeDatagram(protocolStr.toUtf8(), QHostAddress::Broadcast, UDP_OPEN_PORT);
     if (len == -1) {
         qDebug() << "udp sockect write datagram failed\n";
     } else {
-        //qDebug() << "udp sockect launch success\n";
+        qDebug() << "udp sockect launch success" << protocolStr << "\n";
     }
 }
 
@@ -62,3 +63,21 @@ QString UDPBroadcast::getLocalIP() {
     }
     return localip;
 }
+
+QHostAddress UDPBroadcast::getLocalHostIP() {
+  QList<QHostAddress> AddressList = QNetworkInterface::allAddresses();
+  QHostAddress result;
+  foreach(QHostAddress address, AddressList){
+      if(address.protocol() == QAbstractSocket::IPv4Protocol &&
+         address != QHostAddress::Null &&
+         address != QHostAddress::LocalHost){
+          if (address.toString().contains("127.0.")){
+            continue;
+          }
+          result = address;
+          break;
+      }
+  }
+  return result;
+}
+

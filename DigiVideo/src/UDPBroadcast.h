@@ -6,6 +6,7 @@
 #include <QTimer>
 #include <QHostInfo>
 #include <QHostAddress>
+#include <QNetworkInterface>
 #define TIMER_TIMEOUT 1000
 const quint16 UDP_OPEN_PORT = 6677;
 
@@ -17,6 +18,7 @@ public:
     ~UDPBroadcast();
     void stopUDP();
     QString getLocalIP();
+    QHostAddress getLocalHostIP();
 private:
     QUdpSocket *mUDPSocket;
     QTimer     *mTimer;

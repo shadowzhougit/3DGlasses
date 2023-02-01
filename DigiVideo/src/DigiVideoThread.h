@@ -13,21 +13,24 @@
 extern "C"{
 
 #ifdef __cplusplus
- #define __STDC_CONSTANT_MACROS
- #ifdef _STDINT_H
-  #undef _STDINT_H
- #endif
- # include <stdint.h>
+#define __STDC_CONSTANT_MACROS
+#ifdef _STDINT_H
+#undef _STDINT_H
+#endif
+# include <stdint.h>
 #endif
 
 }
 extern "C"
 {
-
-#include "libavformat/avformat.h"
-#include "libavutil/mathematics.h"
-#include "libavutil/time.h"
-#include "libswscale/swscale.h"
+#include <libavcodec/avcodec.h>
+#include <libavformat/avformat.h>
+#include <libswscale/swscale.h>
+#include <libavdevice/avdevice.h>
+#include <libavformat/version.h>
+#include <libavutil/time.h>
+#include <libavutil/imgutils.h>
+#include <libavutil/mathematics.h>
 }
 class DigiVideoThread : public QThread
 {

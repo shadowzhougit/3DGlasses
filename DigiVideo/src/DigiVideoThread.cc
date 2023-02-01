@@ -14,7 +14,7 @@ DigiVideoThread::~DigiVideoThread() {
 }
 
 void DigiVideoThread::init() {
-    av_register_all();
+    //av_register_all();
     avformat_network_init();
 }
 
@@ -44,7 +44,7 @@ void DigiVideoThread::run() {
 
     int nVideoIndex = -1;
     for(int i = 0; i < mInFmtCtx->nb_streams; i++) {
-        if(mInFmtCtx->streams[i]->codec->codec_type == AVMEDIA_TYPE_VIDEO) {
+        if(mInFmtCtx->streams[i]->codecpar->codec_type == AVMEDIA_TYPE_VIDEO) {
             nVideoIndex = i;
             break;
         }
@@ -55,54 +55,85 @@ void DigiVideoThread::run() {
         return;
     }
     qDebug()<<"---------------- File Information ---------------\n";
-    //av_dump_format(m_pInFmtCtx, 0, m_strPath.c_str(), 0);
-    mCodecCtx = mInFmtCtx->streams[nVideoIndex]->codec;
-    mCodec = avcodec_find_decoder(mCodecCtx->codec_id);
+    AVCodecParameters *codecParameters = mInFmtCtx->streams[nVideoIndex]->codecpar;
+    mCodec = (AVCodec*)avcodec_find_decoder(codecParameters->codec_id);
     if(!mCodec) {
         qDebug()<<"could not find codec\n";
         return;
     }
-
+    mCodecCtx = avcodec_alloc_context3(mCodec);;
+    if (avcodec_parameters_to_context(mCodecCtx, codecParameters) !=0) {
+        qDebug() << "DecoderBase::InitFFDecoder avcodec_parameters_to_context fail.\n";
+        return;
+    }
     if (avcodec_open2(mCodecCtx, mCodec, NULL) < 0) {
         qDebug("Could not open codec.\n");
         return;
     }
     mFrame     = av_frame_alloc();
     mFrameRGB  = av_frame_alloc();
-    mOutBuf = (uint8_t*)av_malloc(avpicture_get_size(AV_PIX_FMT_RGB32, mCodecCtx->width, mCodecCtx->height));
-    avpicture_fill((AVPicture*)mFrameRGB, mOutBuf, AV_PIX_FMT_RGB32, mCodecCtx->width, mCodecCtx->height);
+    int size = av_image_get_buffer_size(AV_PIX_FMT_RGB32, codecParameters->width, codecParameters->height, 1);
+    mOutBuf = static_cast<uint8_t *>(av_malloc(static_cast<size_t>(size)));
+
+    if (av_image_fill_arrays(mFrameRGB->data,
+                             mFrameRGB->linesize,
+                             mOutBuf,
+                             AV_PIX_FMT_RGB32,
+                             mCodecCtx->width,
+                             mCodecCtx->height,
+                             1) < 0) {
+        qDebug() << "fill array failed\n";
+        return;
+    }
 
 
     struct SwsContext *pImgCtx = sws_getContext(mCodecCtx->width, mCodecCtx->height, mCodecCtx->pix_fmt,
                                                 mCodecCtx->width, mCodecCtx->height, AV_PIX_FMT_RGB32, SWS_BICUBIC, NULL, NULL, NULL);
-    int nSize = mCodecCtx->width * mCodecCtx->height;
-    mPacket = (AVPacket *)av_malloc(sizeof(AVPacket));
-    if(av_new_packet(mPacket, nSize) != 0) {
-        qDebug()<<"new packet failed\n";
-    }
+    mPacket = av_packet_alloc();
 
     while (!isInterruptionRequested()) {
         if(av_read_frame(mInFmtCtx, mPacket) >= 0) {
             if(mPacket->stream_index == nVideoIndex) {
-                int nGotPic = 0;
-                if(avcodec_decode_video2(mCodecCtx, mFrame, &nGotPic, mPacket) < 0) {
-                    qDebug()<<"decode failed\n";
+                if (avcodec_send_packet(mCodecCtx, mPacket) != 0) {
+                    qDebug() << "send packet failed";
                     return;
                 }
-                if(nGotPic) {
+                while (avcodec_receive_frame(mCodecCtx, mFrame) == 0) {
                     sws_scale(pImgCtx, (const uint8_t* const*)mFrame->data,
-                              mFrame->linesize, 0, mCodecCtx->height, mFrameRGB->data,
+                              mFrame->linesize, 0, codecParameters->height, mFrameRGB->data,
                               mFrameRGB->linesize);
-                    QImage image((uchar*)mOutBuf, mCodecCtx->width, mCodecCtx->height, QImage::Format_RGB32);
+                    QImage image((uchar*)mOutBuf, codecParameters->width, codecParameters->height, QImage::Format_RGB32);
                     if (!image.isNull()) {
-                        emit sendOneFrame(image);
+                        emit sendOneFrame(image.copy());
                     }
                 }
             }
         }
-        av_free_packet(mPacket);
         msleep(25);
     }
+    av_packet_unref(mPacket);
+    if(mFrame != nullptr) {
+        av_frame_free(&mFrame);
+        mFrame = nullptr;
+    }
+    if(mPacket != nullptr) {
+        av_packet_free(&mPacket);
+        mPacket = nullptr;
+    }
+
+    if(mCodecCtx != nullptr) {
+        avcodec_close(mCodecCtx);
+        avcodec_free_context(&mCodecCtx);
+        mCodecCtx = nullptr;
+        mCodec = nullptr;
+    }
+
+    if(mInFmtCtx != nullptr) {
+        avformat_close_input(&mInFmtCtx);
+        avformat_free_context(mInFmtCtx);
+        mInFmtCtx = nullptr;
+    }
+
     exec();
 }
 

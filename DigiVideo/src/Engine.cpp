@@ -40,14 +40,14 @@ void Engine::initObjects() {
 
 void Engine::processExecute() {
     QStringList params;
-    params<< " -f"<<" dshow " <<
-             " -i "<<"video='PC Camera' "<<
-             " -framerate"<<" 25 " <<
-             " -preset:v "<< "ultrafast "<<
-             " -tune:v "<< "zerolatency"<<
-             " -acodec "<< "libfaac "<<
-             " -f "<< " rtsp"<<
-             " -rtsp_transport"<<" tcp rtsp://127.0.0.1/live/test ";
+    //QString cmd = "ffmpeg -f dshow -i video=\"PC Camera\" -framerate 25 -preset:v ultrafast -tune:v zerolatency -acodec libfaac  -f rtsp -rtsp_transport tcp rtsp://127.0.0.1/live/test";
+
+    params<< "ffmpeg -f dshow -i"<<"video=\"PC Camera\" "<<
+             " -framerate  25 "<<
+             " -preset:v ultrafast -tune:v"<< "zerolatency -acodec libfaac "<<
+             " -f rtsp -rtsp_transport"<<" tcp rtsp://127.0.0.1/live/test ";
+   // QString cmd = "ffmpeg -re -i  \"D:\\XR\\ZLMediaKit\\release\\windows\\Debug\\Debug\\NiceChild.mp4\" -framerate 25 -vf scale=360:720  -f rtsp -rtsp_transport tcp rtsp://47.102.115.26/live/test";
+
     mExecutor->executeString(params);
 }
 

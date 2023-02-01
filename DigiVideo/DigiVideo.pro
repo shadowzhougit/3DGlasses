@@ -1,9 +1,20 @@
 TEMPLATE = app
 TARGET = DigiV
-QT += qml quick network
+QT += qml quick network quickcontrols2
 
 CONFIG += c++11
+UI_DIR  = obj/Gui
+MOC_DIR = obj/Moc
+OBJECTS_DIR = obj/Obj
 
+#DESTDIR=$$PWD/bin/
+contains(QT_ARCH, i386) {
+    message("32-bit")
+    DESTDIR = bin/bin32
+} else {
+    message("64-bit")
+    DESTDIR = bin/bin64
+}
 SOURCES += src/main.cpp \
     src/CTcpServer.cc \
     src/DigiVideo.cc \
@@ -34,39 +45,39 @@ HEADERS += \
     src/UDPBroadcast.h
 
 win32{
-CONFIG(debug, debug|release) {
-QMAKE_PRE_LINK += copy $$system_path($$PWD/ffmpeg/windows/bin/*.dll) $$system_path($$OUT_PWD/debug) &
-}else{
-QMAKE_PRE_LINK += copy $$system_path($$PWD/ffmpeg/windows/bin/*.dll) $$system_path($$OUT_PWD/release) &
-}
+    CONFIG(debug, debug|release) {
+        QMAKE_PRE_LINK += copy $$system_path($$PWD/ffmpeg/windows/bin/*.dll) $$system_path($$OUT_PWD/debug) &
+    }else{
+        QMAKE_PRE_LINK += copy $$system_path($$PWD/ffmpeg/windows/bin/*.dll) $$system_path($$OUT_PWD/release) &
+    }
 
-INCLUDEPATH += $$PWD/ffmpeg/windows/include
-LIBS += $$PWD/ffmpeg/windows/lib/avcodec.lib \
-        $$PWD/ffmpeg/windows/lib/avdevice.lib \
-        $$PWD/ffmpeg/windows/lib/avfilter.lib \
-        $$PWD/ffmpeg/windows/lib/avformat.lib \
-        $$PWD/ffmpeg/windows/lib/avutil.lib \
-        #$$PWD/ffmpeg/windows/lib/postproc.lib \
-        $$PWD/ffmpeg/windows/lib/swresample.lib \
-        $$PWD/ffmpeg/windows/lib/swscale.lib
+    INCLUDEPATH += $$PWD/ffmpeg/windows/include
+    LIBS += -L$$PWD/ffmpeg/windows/lib -lavcodec \
+                                       -lavdevice \
+                                       -lavfilter \
+                                       -lavformat \
+                                       -lavutil \
+                                       -lpostproc \
+                                       -lswresample \
+                                       -lswscale
 }
 
 
 unix:!macx{
+    CONFIG(debug, debug|release) {
+        QMAKE_PRE_LINK += copy $$system_path($$PWD/ffmpeg/linux/lib/*.so) $$system_path($$OUT_PWD/debug) &
+    }else{
+        QMAKE_PRE_LINK += copy $$system_path($$PWD/ffmpeg/linux/lib/*.so) $$system_path($$OUT_PWD/release) &
+    }
 
-CONFIG(debug, debug|release) {
-QMAKE_PRE_LINK += copy $$system_path($$PWD/ffmpeg/linux/lib/*.so) $$system_path($$OUT_PWD/debug) &
-}else{
-QMAKE_PRE_LINK += copy $$system_path($$PWD/ffmpeg/linux/lib/*.so) $$system_path($$OUT_PWD/release) &
+    INCLUDEPATH += $$PWD/ffmpeg/linux/include
+    LIBS += -L$$PWD/ffmpeg/linux/lib -lavcodec \
+                                      -lavdevice \
+                                      -lavfilter \
+                                      -lavformat \
+                                      -lavutil \
+                                      -lpostproc \
+                                      -lswresample \
+                                      -lswscale
 }
 
-INCLUDEPATH += $$PWD/ffmpeg/linux/include
-LIBS += $$PWD/ffmpeg/linux/lib/libavcodec-57.so \
-        $$PWD/ffmpeg/linux/lib/libavdevice-57.so \
-        $$PWD/ffmpeg/linux/lib/libavfilter-6.so \
-        $$PWD/ffmpeg/linux/lib/libavformat-57.so \
-        $$PWD/ffmpeg/linux/lib/libavutil-55.so \
-        #$$PWD/ffmpeg/linux/lib/libpostproc-54.so \
-        $$PWD/ffmpeg/linux/lib/libswresample-2.so \
-        $$PWD/ffmpeg/linux/lib/libswscale-4.so
-}
